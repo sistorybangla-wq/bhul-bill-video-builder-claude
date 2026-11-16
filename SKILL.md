@@ -1,185 +1,154 @@
 ---
-name: bhul-bill-video-builder
-description: Builds a polished 9:16 Bangla animated story video (MP4) from the user's voice MP3 and matching SRT. Use when both files are provided. Never writes or rewrites stories.
+name: reels-video-edits
+description: Creates original Bangla 9:16 animated Reels videos from a user's voice MP3 and matching SRT. First presents a scene-by-scene storyboard for approval, then renders and delivers the final MP4 after explicit approval. Never writes or rewrites stories.
 ---
 
-# Bangla story video builder
+# Reels Video Edits
 
-## Purpose and role
+## Purpose
 
-Turn the user's **voice MP3 and its matching SRT** into a polished vertical animated video for short-form platforms. The deliverable is an MP4 at **1080 × 1920, 30 fps**. The project is a code-drawn flat-vector animation built with Remotion; it is not a general live-footage editor.
+Create a polished vertical Bangla animated video from the user's **voice MP3 and matching SRT** using the included Remotion project. Target output: **9:16, 1080×1920, 30 fps, MP4**. This is a code-drawn 2D cartoon-inspired flat-vector animation workflow—not a general live-footage editor.
 
-This skill creates the video only. It must not write, extend, rewrite, translate, or invent the story or script. The SRT is the single source of truth for all visible spoken captions. Visual storytelling may illustrate the supplied narration, but must not add claims or plot facts that are absent from it.
+The skill does not write, extend, rewrite, translate, or invent stories/scripts. The SRT is the single source of truth for visible spoken captions. Visuals may illustrate the supplied narration but must not add unsupported events, claims, or dialogue.
 
-Reply to the user in Bengali, using short, plain wording. Technical details can remain in code and logs; do not burden a non-technical user with them unless needed.
+Speak to the user in simple, concise Bengali.
 
-## Required inputs and first response
+## Required input
 
-Required:
-1. Voice recording in MP3 format.
-2. The matching SRT subtitle file.
+- Voice MP3.
+- Matching SRT.
 
-Optional:
-- Page/channel name for a small watermark.
-- Original character, setting, visual-style, or ending-card preferences.
-- A requested ending line, only if it is already present in the SRT or the user explicitly asks for an additional non-caption title. Never present it as spoken dialogue.
+Optional: channel/page name for a small watermark, and original visual preferences (characters, setting, colors, or animation style).
 
-If only a topic or idea is sent, reply exactly: **“ভিডিও বানাতে ভয়েসের MP3 আর SRT ফাইল লাগবে।”**
-If one required file is missing, ask only for that file. Do not start a build using guessed narration, generated speech, or automatic speech recognition as a substitute for the SRT.
-If the SRT and voice appear mismatched, ask the user to confirm or provide the correct file before producing a final video.
+If the user provides only a topic, respond: **“ভিডিও বানাতে ভয়েসের MP3 আর SRT ফাইল লাগবে।”** If one required file is missing, ask for that file only. Never substitute speech-to-text for a missing SRT. If the MP3 and SRT seem mismatched or timestamps are seriously unclear, ask the user before proceeding.
 
-## Non-negotiable content and caption rules
+## Non-negotiable rules
 
-- Preserve every caption's Bengali wording exactly as it appears in the SRT. Do not correct spelling, punctuation, grammar, names, or wording, even if a phrase looks unusual.
-- You may divide an SRT caption into two visual lines and highlight one or two existing words, but do not add, remove, reorder, translate, or replace its words. Highlight markup is visual only and must not appear as literal braces in the rendered video.
-- Use SRT timestamps as the initial caption timing. Adjust only when required to fit the voice or when the SRT timing is clearly invalid; do not alter the caption text. If timing needs a material correction, note it to the user.
-- Never use speech-to-text output as caption text. Never create extra spoken dialogue, quotes, explanatory claims, statistics, or story events.
-- Do not add political persuasion or attacks, religious attacks, hate, harassment, humiliation of real people, or medical/financial advice presented as fact. Handle sensitive topics neutrally and gently. If the supplied material requires disallowed additions, do not add them; explain briefly in Bengali and ask how the user wants to proceed when necessary.
-- Do not copy another creator's characters, page identity, brand, artwork, scenes, or distinctive design. Use original generic vector illustrations and the project's own visual system.
-- Do not promise income, views, reach, virality, or success.
-- Use only audio and assets supplied by the user or assets that are original, licensed, or generated for this project. The default sound effects are synthesized by the project. Do not add unlicensed music.
+- Keep SRT caption wording exactly as provided: do not correct, translate, add, remove, reorder, or replace words or punctuation. Line wrapping and visual highlighting of existing words are allowed; the visible text must still match the SRT.
+- Use SRT timestamps as the starting point. Do not silently invent or materially change timing; disclose necessary timing corrections.
+- Do not invent narration, quotes, facts, statistics, or story events. Keep scene tags grounded in the SRT.
+- Do not add political or religious attacks, hate, harassment, humiliation of real people, or medical/financial advice presented as fact. Treat sensitive topics neutrally and gently.
+- Do not copy another creator's page, brand, characters, artwork, scenes, or distinctive design. Use original generic artwork and the project's own visual style.
+- Use only user-provided, original, or properly licensed assets. Do not add unlicensed music. Never promise views, income, reach, virality, or success.
+- Never claim a render, test, or file delivery happened unless it actually did.
 
-## Claude/runtime capability check
+## Claude environment check
 
-A skill file is instructions and assets; it does not itself guarantee that the current Claude.ai conversation can execute Node.js, FFmpeg, Python, Chromium, or deliver generated files. Before building, check whether the active environment provides a working filesystem, command execution, required tools, and a way to return an MP4.
+A skill upload does not itself provide Node.js, FFmpeg, Python/NumPy, Chromium, a shell, or file-delivery capability. Before attempting a render, check the tools available in the active Claude.ai environment. Use only capabilities actually exposed. If rendering or delivery is unavailable, explain this in Bengali; do not provide a fake file or link. Do not install system packages or execute untrusted code without permission.
 
-- If command execution and file delivery are available, follow the procedure below.
-- If a required tool is unavailable, state the limitation plainly in Bengali. Do not claim that a render, validation, or file delivery happened when it did not.
-- Do not assume a Claude.ai web chat can run arbitrary local commands or access the user's computer. Use only tools actually exposed in the current environment.
-- Do not install system packages or execute untrusted code without the environment's normal permission. Prefer existing tools and project-local dependencies. If installation is blocked, stop and explain what is missing.
+## Two outputs: storyboard, then final MP4
 
-## Project layout and editable areas
+### Output 1 — scene-by-scene storyboard (not a video)
 
-All shared project code is under `template/`.
+After validating the MP3 and SRT, prepare a clear Bengali scene plan before rendering the final video. For every scene, include:
 
-- `template/src/data.ts`: `TOTAL`, `CAPS`, `SPEAK`, `SCENE_TAGS`, and `SFX`. Replace the sample story data for every new video; do not carry over unrelated sample captions or claims.
-- `template/src/scenes.tsx`: original scene components and the `SCENES` timeline. Keep only scenes that fit the supplied narration; adapt the visual idea, not unrelated story details.
-- `template/src/Video.tsx`: scene sequence, voice track, ambient audio, and SFX.
-- `template/src/Root.tsx`: composition dimensions, frame rate, and composition ID.
-- `template/src/chrome.tsx`: caption cards, tag chip, optional watermark, vignette/grain, and scene stage.
-- `template/src/kit.tsx` and `template/src/figures.tsx`: reusable character, background, prop, animation, and graphic primitives.
-- `template/src/theme.ts`: frame rate, palette, timing helpers, and animation defaults.
-- `template/src/brand.ts`: optional page-name watermark.
-- `template/tools/make_rms.py`: voice loudness samples for mouth animation; it requires Python NumPy and FFmpeg.
-- `template/gen-sfx.mjs`: generates the project's original simple SFX and ambient pad.
+- Scene number and approximate start/end time.
+- The relevant SRT caption/timestamp, quoting exact SRT wording only.
+- What will be shown: setting, original characters/props, action/expression.
+- Camera movement, transition, color mood, and proposed sound where relevant.
+- How the visual relates to the supplied narration.
 
-The template's story, timings, scene tags, and example scenes are demonstrations, not verified content for a new user's audio. Replace or adapt them for the current MP3/SRT.
+Show enough detail for the user to understand what the final animation will look like. If possible, provide static storyboard keyframes/contact sheet as review material; do not call it a video preview. Do not add unsupported story detail. Clearly flag assumptions and ask questions where needed.
 
-## Production workflow
+Then stop and ask: **“এই দৃশ্য-পরিকল্পনা ঠিক আছে? পরিবর্তন চাইলে দৃশ্য নম্বর ও কী বদলাবেন বলুন। ঠিক থাকলে ‘অনুমোদন’ লিখুন; এরপর final MP4 বানাব।”**
 
-### 1. Inspect inputs and environment
+### Revisions and approval
 
-- Confirm both uploaded files are readable, and record their exact paths.
-- Inspect MP3 duration, sample rate, and channels with `ffprobe`; inspect SRT blocks and timestamp order.
-- Check available versions: Node.js (18 or newer), FFmpeg/ffprobe, Python 3 with NumPy, and a Chromium executable compatible with Remotion. Locate the browser explicitly; use `npx remotion browser ensure` if supported by the installed Remotion version and environment.
-- If any required tool is absent, do not pretend to render. Explain the missing requirement in Bengali and stop unless the environment offers a supported alternative.
-- Do not overwrite the user's files. Create a separate working directory and preserve the original MP3 and SRT.
+- Do not render or deliver the full-quality final MP4 before explicit approval.
+- If the user requests scene changes, revise and show the updated storyboard; ask again for approval.
+- If asked to change caption wording, request a corrected SRT. Do not alter the SRT wording yourself.
+- Approval must be explicit, e.g. “অনুমোদন” or “ঠিক আছে, final করো”. Do not treat an unclear response as approval.
+- If an important scene meaning/layout changes after approval, show an updated storyboard and ask again.
 
-### 2. Prepare a clean project
+### Output 2 — final MP4
 
-- Copy `template/` into a fresh per-video work directory and install project dependencies only if permitted and necessary.
-- Install/use the Hind Siliguri and Noto Serif Bengali fonts specified by the project. Copy the expected `.woff2` files into `public/fonts/` as described by the font package paths. Verify Bengali conjuncts and vowel marks in actual preview frames.
-- Generate the original SFX with `node gen-sfx.mjs` and ensure the ambient pad is at least as long as the final video. If the video is longer than the generated 66-second pad, update its duration before generation.
-- Copy the user's voice to `public/voice.mp3` without changing the source. Generate `src/rms.json` using `python3 tools/make_rms.py public/voice.mp3 src/rms.json` when the required tools are available.
-- Set `PAGE_NAME` in `src/brand.ts` only when the user gave a page/channel name; otherwise leave it empty.
+Only after explicit approval, implement the approved storyboard, render the full-quality MP4, perform the checks below, and deliver the actual verified file. If rendering fails or tools are unavailable, explain the blocker instead of claiming success.
 
-### 3. Establish the audio timeline
+## Project files
 
-- Use `ffprobe` to get the precise voice duration. Do not infer it from the SRT's last caption.
-- Inspect silence and pauses, for example with `ffmpeg -i public/voice.mp3 -af silencedetect=noise=-35dB:d=0.12 -f null -`. Use pauses as helpful cut points, not as the only source of meaning.
-- Set `TOTAL` to the voice duration plus a short visual tail (normally about 1–1.5 seconds). The last scene must end exactly at `TOTAL`; do not truncate the narration.
-- Keep caption text exactly as supplied. If SRT blocks split a sentence, retain their wording and use timing/line wrapping to make the reading comfortable.
-- Check caption timestamps for malformed values, negative duration, out-of-order blocks, unintended overlaps, and values beyond audio duration. Do not silently rewrite text or fabricate timing. Resolve serious uncertainty by asking the user.
+Shared Remotion code is in `template/`:
 
-### 4. Plan story visuals and scene timing
+- `template/src/data.ts`: `TOTAL`, `CAPS`, `SPEAK`, `SCENE_TAGS`, `SFX`. Replace all sample story data for each new video.
+- `template/src/scenes.tsx`: scene components and the timeline. Adapt/remove unrelated example scenes.
+- `template/src/Video.tsx`: scene sequences, voice, ambience, and sound effects.
+- `template/src/Root.tsx`: Remotion composition size, frame rate, and ID.
+- `template/src/chrome.tsx`: captions, scene tags, watermark, stage, vignette/grain.
+- `template/src/kit.tsx`, `template/src/figures.tsx`: reusable vector people, props, backgrounds, and animation helpers.
+- `template/src/theme.ts`: frame rate, colors, timing and animation defaults.
+- `template/src/brand.ts`: optional page/channel watermark.
+- `template/tools/make_rms.py`: voice loudness samples for mouth movement (Python NumPy and FFmpeg required).
+- `template/gen-sfx.mjs`: generates original simple sound effects and ambient pad.
 
-- Divide narration into scenes at meaningful changes of place, time, speaker, or idea. Prefer natural voice pauses; avoid arbitrary rapid cuts. A useful starting point is roughly 8–16 scene changes per minute, adjusted for narration pace and emotional rhythm.
-- Plan a simple shot list before coding: scene time range, narration idea (for internal planning only), setting, original characters/props, camera movement, and transition. Every scene must depict only what the supplied narration supports.
-- Use an original, consistent flat-vector style. Keep recurring character appearance, clothing, scale, and colors consistent throughout this video. Do not imply that generic vector figures are real people.
-- Scene tags must be short, neutral Bengali labels derived from the supplied story; do not introduce new claims. Do not add a scene tag if a suitable one cannot be derived.
-- Captions belong in the established lower safe area; scene content should avoid the top tag/watermark region and the caption area. In the 540×960 design coordinate space, keep important content approximately within y=115–720; confirm the final 1080×1920 render visually.
-- Make scenes communicate one main idea at a time. Use deliberate foreground/background separation and readable silhouettes. Avoid clutter, unnecessary props, decorative text, and visual details that compete with captions.
+The included story, timings, scene tags, and scene code are examples only—not content to reuse blindly.
 
-### 5. Professional motion, color, and sound
+## Production workflow after approval
 
-**Camera and animation**
-- Use restrained, deterministic camera motion: slow push-in for emphasis, gentle pull-back for relief or reveal, and subtle pan only when it guides attention. A scene may remain static when that is clearer.
-- Keep camera movement smooth and bounded; no random shake, abrupt zoom, excessive parallax, or movement that pushes captions, tags, or key figures outside safe areas.
-- Use motion with a purpose: breathing, blinking, spring entrances, small prop movement, or a controlled reveal. Avoid animating every element at once.
-- Use short, clean cuts or subtle fades. Transitions should follow the voice/story beat and should not obscure a caption. Avoid a transition on every caption.
+### 1. Inspect inputs and runtime
 
-**Color and visual finish**
-- Preserve the existing palette in `src/theme.ts` as the base look: cream/beige, warm ink, restrained accent red, teal, and controlled dark scenes. Introduce a new color only when it improves scene clarity and maintain consistency.
-- Use subtle contrast, depth, vignette, and grain only when they help the image. Keep grain nearly invisible, skin/clothing colors natural within the illustration style, dark details legible, and caption contrast high.
-- Avoid heavy global color overlays that discolor Bengali text or make scenes muddy. Color treatment must be consistent across cuts and not conceal detail.
-- Check composition on a phone-sized preview as well as a full-size frame.
+- Confirm MP3/SRT are readable and preserve the originals in a separate working directory.
+- Check MP3 duration with `ffprobe`; inspect SRT validity, order, and timestamps.
+- Check Node.js 18+, FFmpeg/ffprobe, Python 3 + NumPy, and a Chromium browser compatible with Remotion. If a necessary tool is missing, stop and explain.
 
-**Audio mix**
-- The voice is always the primary track. Keep it clear, undistorted, and synchronized with captions; do not replace or retime spoken words.
-- Keep background ambience/music well below speech. Use the project's original pad and SFX sparingly, with lower volume under speech and no abrupt peaks. Do not add a sound effect to every visual event by default.
-- Apply final loudness normalization only after rendering and listen/check beginning, middle, and end for clipping, silence, abrupt endings, or masking. A reasonable starting point is EBU-style loudness near -16 LUFS integrated and true peak no higher than -1.5 dBTP; use a compatible FFmpeg filter and verify the result rather than claiming exact compliance without measurement.
-- Do not use copyrighted or unlicensed music. If the user supplies music, use it only if it is appropriate and available for this use.
+### 2. Prepare assets/project
 
-### 6. Implement story data and scenes
+- Copy `template/` into a fresh per-video work directory. Install project dependencies only if allowed and needed.
+- Provide the Hind Siliguri and Noto Serif Bengali font files expected by `template/src/chrome.tsx` in `public/fonts/`; inspect Bengali conjuncts and vowel marks in rendered frames.
+- Copy the voice to `public/voice.mp3` without changing the source. Generate `src/rms.json` using `python3 tools/make_rms.py public/voice.mp3 src/rms.json` when dependencies are available.
+- Run `node gen-sfx.mjs`; make the generated ambient pad long enough for the project duration. Use only appropriate original/licensed sound.
+- Set `PAGE_NAME` only if the user supplied a page/channel name; otherwise leave it blank.
 
-Replace the sample content in `src/data.ts` with:
-- `TOTAL`: measured audio duration plus tail.
-- `CAPS`: SRT wording and timings; use `{word}` only to visually highlight an exact existing word and `\n` only for a line break. Keep no more than two readable lines per card; if the SRT block is long, use the SRT's own block timing/segmentation rather than deleting words.
-- `SPEAK`: speaker time windows only when the narration clearly identifies them; otherwise omit mouth animation rather than guessing who speaks.
-- `SCENE_TAGS`: concise, accurate labels that do not add facts.
-- `SFX`: only necessary original effects synchronized to the relevant visual beat.
+### 3. Timing and visual plan
 
-Replace/adapt `src/scenes.tsx` so every listed scene corresponds to the current audio. Ensure the `SCENES` timeline is ordered, has no unintended gaps/overlaps, starts at 0, and ends exactly at `TOTAL`. Use `useT(t0)` for local frame and timeline time; use `Stage` for SVG-based scenes. All direct children of `Stage` must be SVG elements/components, or the scene may render blank. If using a scene transition, handle timing without leaving a blank or double-rendered frame.
+- Use actual MP3 duration, not the last SRT subtitle, to set `TOTAL`; ordinarily add a short 1–1.5 second ending hold. The last scene must end exactly at `TOTAL`.
+- Use voice pauses as possible cut points. Change scene for meaningful changes in place, time, speaker, or idea; avoid arbitrary rapid cuts.
+- Keep recurring character appearance and colors consistent. Use original 2D cartoon-inspired flat-vector illustrations.
+- Keep a clear composition with one main idea per scene. In the 540×960 design area, keep important visuals roughly between y=115 and y=720; reserve upper area for watermark/tag and lower area for captions.
+- Scene tags must be short and supported by the SRT; omit them if no accurate tag fits.
 
-Do not change shared components unnecessarily. If changing `Stage`, `chrome.tsx`, `Video.tsx`, or global palette to improve a specific project, preserve existing interfaces and check every scene so the change does not cause a regression.
+### 4. Professional motion, color, and audio
 
-### 7. Automated and visual quality assurance
+- Use smooth, restrained zoom-in/zoom-out or pan only when it guides attention. Use purposeful character/prop motion and clean cuts or subtle fades. Avoid random shake, abrupt zooms, excessive parallax, or transitions that obscure captions.
+- Keep the base warm palette from `template/src/theme.ts`; use controlled accent colors, subtle contrast/depth, and restrained vignette/grain. Maintain legibility and color consistency; avoid muddy or over-processed frames.
+- The voice remains prominent, clear, synchronized, and undistorted. Keep ambience and SFX low and sparse so they do not mask speech or peak abruptly. Do not add unlicensed music.
+- If applying loudness normalization, use compatible FFmpeg processing and verify the resulting audio rather than claiming a measurement that was not made.
 
-Never render blindly. Before full render:
+### 5. Implement
 
-1. Run `npx tsc --noEmit`; fix all relevant errors.
-2. Validate the data with a small project-local check or direct inspection:
-   - `TOTAL` is finite and positive.
-   - captions have valid `s < e`, are ordered, and stay within the audio/video timeline;
-   - scene entries are ordered, have positive duration, and cover from 0 to `TOTAL` without unintended gaps or overlaps;
-   - scene tags and SFX fall within the video duration;
-   - referenced voice, fonts, SFX, and RMS files exist.
-3. Render at least one representative still for every scene and important caption state. Use the detected browser path, e.g. `npx remotion still src/index.ts StoryVideo out/scene_01.png --frame <frame> --browser-executable=<browser>`.
-4. Review the stills/contact sheet. Fix blank SVG scenes, incorrect Bengali glyphs/conjuncts, truncated captions, low contrast, tag/caption overlap, misplaced characters, unsafe cropping, and inconsistent colors. Also inspect frames near scene cuts and the final frame.
-5. Render a short preview where practical and review actual motion and voice/music/SFX balance. Do not rely on TypeScript or still frames alone for audio/motion QA.
-6. If a quality issue cannot be fixed or verified, disclose it in the final Bengali note rather than claiming perfection.
+Replace sample `src/data.ts` values with:
 
-### 8. Render and verify the MP4
+- `TOTAL`: measured audio duration plus a short visual ending hold.
+- `CAPS`: exact SRT wording and timings; `{word}` is visual highlighting for an existing word; `\n` is line wrapping only.
+- `SPEAK`: speaker windows only when the speaker is clear; otherwise avoid guessing.
+- `SCENE_TAGS`: concise labels derived from the story.
+- `SFX`: necessary effects only, synchronized to the approved plan.
 
-- Render to a temporary output first. Use H.264, 1080×1920, 30 fps, a high-quality setting such as CRF 18–21, and a safe concurrency appropriate to available resources (never exceed 2 by default).
-- Keep the render process attached or explicitly wait and check its exit status/logs. Do not start a background render and claim completion before it finishes.
-- After render, use `ffmpeg`/`ffprobe` to create the final MP4 with `yuv420p`, fast-start metadata, AAC audio, normalized audio if appropriate, and duration aligned with the composition. Avoid re-encoding video twice unless required.
-- Verify the final file exists and is non-empty. Check codec, dimensions, frame rate, duration, and audio stream with `ffprobe`; inspect several output frames and listen to sample sections if audio tools are available.
-- Deliver the actual MP4 using the current platform's file-delivery tool. Do not provide a fake link or claim a file was attached when it was not.
+Adapt `src/scenes.tsx` to the approved storyboard. Ensure `SCENES` is time ordered, begins at 0, has no unintended gaps/overlaps, and ends at `TOTAL`. Use `useT(t0)` for timing and `Stage` for SVG-based scenes. All direct `Stage` children must be SVG elements/components or scenes may render blank. Avoid unnecessary edits to shared components; check for regressions if they are changed.
 
-## Claude.ai use and honest limitations
+### 6. QA and final render
 
-This repository includes a Remotion template and a skill description; uploading a skill does not automatically install Node.js, FFmpeg, Python, Chromium, fonts, or provide a local shell. At each run, use only capabilities actually available in the active Claude.ai environment. If it cannot execute or render the project, tell the user in Bengali what is unavailable and what they need to provide/use next. Never state that the MP4 was generated unless the actual render completed and the resulting file was verified.
+Before full render:
 
-## Final reply
+1. Run `npx tsc --noEmit` and fix relevant errors.
+2. Validate finite positive `TOTAL`, caption ranges/order, scene coverage and ordering, tag/SFX ranges, and existence of voice/font/SFX/RMS assets.
+3. Render a representative still for every scene and important caption state. Review all frames/contact sheet for blank scenes, Bengali glyph errors, clipped text, low contrast, overlap, cropping, and inconsistent characters/colors. Inspect cuts and ending.
+4. Where possible, review a short motion/audio sample for timing, transitions, clipping, abrupt endings, and voice/music balance.
+5. Render H.264 MP4 at 1080×1920 and 30 fps with suitable quality and safe concurrency (default maximum 2). Wait for completion and inspect logs/exit status.
+6. Verify the actual final file exists and is non-empty. Use `ffprobe` to check codec, dimensions, frame rate, duration, and audio stream; inspect several final frames and listen to audio samples where possible.
+7. Deliver only the verified final MP4. Mention any known/unverified issue honestly.
 
-When the MP4 is successfully verified and delivered, answer in Bengali, briefly:
-- link/attachment to the MP4;
-- one line: **“যা ঠিক হয়নি: …”** for any known issue, or **“যা ঠিক হয়নি: কিছু নেই।”** only when the checks found no known issue.
+## Final response
 
-If the build fails or cannot be run, do not claim delivery. Explain the blocker plainly and ask for the next needed action. Do not bury a known limitation behind a claim that everything is perfect.
+After successful verification and delivery, reply briefly in Bengali with the MP4 attachment/link and one line:
 
-## Reusable scene kit reference
+- **“যা ঠিক হয়নি: [সমস্যাটি]”** if there is a known issue; or
+- **“যা ঠিক হয়নি: কিছু নেই।”** only if the checks found no known issue.
 
-The shared scene kit is in `src/kit.tsx` and `src/figures.tsx`:
-- `<Stage dur={dur} bg?>` creates the 540×960 SVG design stage and handles stage-level finish. Scene children must be SVG content.
-- `useT(t0)` provides local frame `f`, absolute seconds `t`, and `lf(sec)` for local animation timing.
-- Character presets include `TANVIR`, `SHUVO`, `CHACHA`, and `FATHER`; use them only when suitable and adapt original generic characters consistently.
-- `Person`, `Mini`, and `Bubble` provide vector figures and speech/thought bubbles. `RoomNight`, `RoomDay`, `RoomLiving`, `DeskNight`, and `DeskTop` are reusable backgrounds/props.
-- `Doc`, `Eye`, `Megaphone`, `StepCard`, and `Relatives` are reusable visual pieces; adapt their meaning to the actual narration rather than keeping unrelated example content.
-- `mouthOpen(who, t)` depends on `SPEAK` and `RMS`; do not assign a speaker without evidence.
-- `src/chrome.tsx` owns caption rendering, scene tags, optional watermark, vignette, and grain. Keep captions readable and do not shrink the tag chip just to fit an overlong label.
+If a final render cannot be completed, say so plainly and do not claim delivery.
 
-## Known limitations to disclose when relevant
+## Reusable scene kit
 
-The current template's characters have limited motion and no built-in walking animation. Its example story data and scene components are not a general-purpose automatic story understanding system; new narration requires careful scene planning and visual QA. A professional result still needs human review for whether the illustrations fit the narration and whether the Bengali captions look correct.
+The shared kit is in `template/src/kit.tsx` and `template/src/figures.tsx`. `<Stage dur={dur}>` creates the 540×960 SVG design stage; `useT(t0)` gives local frame/time; `Person`, `Mini`, and `Bubble` provide vector figures; `RoomNight`, `RoomDay`, `RoomLiving`, `DeskNight`, and `DeskTop` are reusable backgrounds/props; `Doc`, `Eye`, `Megaphone`, `StepCard`, and `Relatives` are reusable visual components. Adapt these to the approved story; do not retain unrelated sample content. `mouthOpen(who,t)` depends on `SPEAK` and `RMS`, so assign speakers only when supported by the SRT/audio.
+
+## Known limitations
+
+The template's characters have limited motion and no built-in walking animation. Its examples are not an automatic story-understanding system. Every video still needs scene planning and human review of story fit, Bengali text, and visual quality.
